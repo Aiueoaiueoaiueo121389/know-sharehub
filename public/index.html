@@ -27,7 +27,7 @@
           <button id="view-user-btn" onclick="switchView('user')" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
             <i class="fa-solid fa-globe mr-2"></i>閲覧モード
           </button>
-          <button id="view-admin-btn" onclick="switchView('admin')" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-700 text-slate-300 hover:bg-slate-600">
+          <button id="view-admin-btn" onclick="tryOpenAdmin()" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-700 text-slate-300 hover:bg-slate-600">
             <i class="fa-solid fa-user-shield mr-2"></i>管理画面
           </button>
         </div>
@@ -71,9 +71,14 @@
           </h1>
           <p class="text-slate-400 text-sm mt-1">ナレッジ記事の投稿・編集・アナリティクスの確認ができます。</p>
         </div>
-        <button onclick="togglePostModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
-          <i class="fa-solid fa-plus"></i> 新規記事作成
-        </button>
+        <div class="flex items-center gap-3">
+          <button onclick="logoutAdmin()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium px-4 py-2.5 rounded-xl text-sm transition border border-slate-600">
+            <i class="fa-solid fa-lock mr-2"></i>ログアウト
+          </button>
+          <button onclick="togglePostModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+            <i class="fa-solid fa-plus"></i> 新規記事作成
+          </button>
+        </div>
       </div>
 
       <!-- アナリティクスカード -->
@@ -118,6 +123,29 @@
 
   </main>
 
+  <!-- パスワード認証モーダル -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-6 space-y-5 shadow-2xl">
+      <div class="text-center space-y-2">
+        <div class="bg-indigo-600/20 text-indigo-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto border border-indigo-500/30">
+          <i class="fa-solid fa-lock text-xl"></i>
+        </div>
+        <h3 class="font-bold text-lg text-white">管理者認証</h3>
+        <p class="text-xs text-slate-400">管理画面に入るにはパスワードを入力してください。</p>
+      </div>
+      <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <div>
+          <input type="password" id="admin-password-input" placeholder="パスワードを入力" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <p id="auth-error" class="text-xs text-rose-400 mt-2 hidden">パスワードが間違っています。</p>
+        </div>
+        <div class="flex items-center justify-end gap-2">
+          <button type="button" onclick="toggleAuthModal(false)" class="w-full py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-700 transition">キャンセルする</button>
+          <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/30">認証する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- 投稿作成・編集モーダル -->
   <div id="post-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-6 space-y-5 shadow-2xl">
@@ -153,6 +181,10 @@
   </div>
 
   <script>
+    // 管理者パスワード設定　変更しない
+    const ADMIN_PASSWORD = "Chizuko";
+    let isAdminAuthenticated = false;
+
     // 初期サンプルデータ
     let articles = JSON.parse(localStorage.getItem('knowshare_articles')) || [
       { id: 1, title: 'Firebase Hosting + VS Code環境の構築手順', category: '環境構築', content: 'Firebase CLIをグローバル導入し、firebase init hostingを実行することで簡単にWebアプリを公開可能。', date: '2026-08-30', likes: 12 },
@@ -161,6 +193,46 @@
 
     function saveArticles() {
       localStorage.setItem('knowshare_articles', JSON.stringify(articles));
+    }
+
+    function tryOpenAdmin() {
+      if (isAdminAuthenticated) {
+        switchView('admin');
+      } else {
+        toggleAuthModal(true);
+      }
+    }
+
+    function toggleAuthModal(show) {
+      const modal = document.getElementById('auth-modal');
+      const errorMsg = document.getElementById('auth-error');
+      const input = document.getElementById('admin-password-input');
+      
+      if (show) {
+        input.value = '';
+        errorMsg.classList.add('hidden');
+      }
+      modal.style.display = show ? 'flex' : 'none';
+      if (show) input.focus();
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('admin-password-input').value;
+      const errorMsg = document.getElementById('auth-error');
+
+      if (input === ADMIN_PASSWORD) {
+        isAdminAuthenticated = true;
+        toggleAuthModal(false);
+        switchView('admin');
+      } else {
+        errorMsg.classList.remove('hidden');
+      }
+    }
+
+    function logoutAdmin() {
+      isAdminAuthenticated = false;
+      switchView('user');
     }
 
     function switchView(view) {

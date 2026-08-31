@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: know-sharehub
+    env: static
+    buildCommand: "mkdir -p dist && cp -r public/* dist/"
+    staticPublishPath: ./dist
