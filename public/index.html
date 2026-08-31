@@ -1,398 +1,1143 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>情報共有ポータル - KnowShare</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KnowShare Hub</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
-    body { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
+    :root {
+      --bg: #f6f8fb;
+      --panel: #ffffff;
+      --panel-strong: #eef2ff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --accent: #4f46e5;
+      --accent-soft: rgba(79, 70, 229, 0.12);
+      --border: #dfe5ef;
+      --shadow: rgba(15, 23, 42, 0.08);
+    }
+
+    html[data-theme="dark"] {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-strong: #1e293b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #8b5cf6;
+      --accent-soft: rgba(139, 92, 246, 0.18);
+      --border: #334155;
+      --shadow: rgba(0, 0, 0, 0.28);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 10px 24px var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      font-size: 1.2rem;
+    }
+
+    .brand span {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      vertical-align: middle;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .theme-button,
+    .ghost-button,
+    .primary-button {
+      border-radius: 12px;
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 700;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      background: var(--panel-strong);
+      color: var(--text);
+    }
+
+    .theme-button:hover,
+    .ghost-button:hover,
+    .primary-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary-button {
+      background: linear-gradient(135deg, var(--accent), #7c3aed);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 12px 22px rgba(79, 70, 229, 0.2);
+    }
+
+    .content {
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 20px 40px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.8fr 1fr;
+      gap: 22px;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.09), var(--panel), rgba(148, 163, 184, 0.06));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 18px 30px var(--shadow);
+      margin-bottom: 26px;
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1.15;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 60ch;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      align-content: center;
+    }
+
+    .stat-card {
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .stat-card small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-card strong {
+      font-size: 1.8rem;
+      letter-spacing: -0.04em;
+    }
+
+    .search-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin: 20px 0 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 220px;
+      max-width: 420px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 16px 12px 42px;
+      font-size: 0.96rem;
+      outline: none;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    .filters {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .filter-pill.active {
+      background: var(--accent);
+      color: white;
+      border-color: transparent;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 14px 24px var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 220px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      border: 1px solid rgba(79, 70, 229, 0.18);
+    }
+
+    .date {
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 1.12rem;
+      line-height: 1.45;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 0.92rem;
+    }
+
+    .card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .likes {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #ef4444;
+      font-weight: 700;
+    }
+
+    .detail {
+      color: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .empty-state {
+      width: 100%;
+      background: var(--panel);
+      border: 1px dashed var(--border);
+      border-radius: 18px;
+      padding: 42px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal-box {
+      width: min(100%, 420px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.22);
+    }
+
+    .modal-box h3 {
+      margin: 0 0 10px;
+      font-size: 1.3rem;
+    }
+
+    .modal-box p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .modal-box input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: var(--panel-strong);
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .error-text {
+      color: #ef4444;
+      font-size: 0.82rem;
+      margin: 0 0 10px;
+    }
+
+    .admin-shell {
+      max-width: 1100px;
+      margin: 32px auto 0;
+      padding: 0 20px 40px;
+    }
+
+    .admin-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 16px 30px var(--shadow);
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .admin-header h2 {
+      margin: 0;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .admin-card {
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .admin-card small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .admin-card strong {
+      font-size: 1.8rem;
+    }
+
+    .admin-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 28px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .admin-toolbar h3,
+    .admin-list-wrap h3 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .article-form {
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .form-row label {
+      font-weight: 700;
+    }
+
+    .form-row input,
+    .form-row textarea {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font: inherit;
+      padding: 12px 14px;
+      width: 100%;
+    }
+
+    .form-row textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-direction: row;
+      margin-bottom: 0;
+    }
+
+    .admin-list-wrap {
+      margin-top: 20px;
+    }
+
+    .admin-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .admin-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .admin-item-title {
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .admin-item-meta {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .admin-item-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .detail-box {
+      width: min(100%, 700px);
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .detail-badge {
+      margin-bottom: 8px;
+    }
+
+    .detail-meta {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .detail-body {
+      color: var(--text);
+      line-height: 1.8;
+      white-space: pre-wrap;
+    }
+
+    .detail-body p {
+      margin: 0 0 14px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      border: 1px solid var(--border);
+      background: var(--panel-strong);
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .status-badge.published {
+      background: rgba(34, 197, 94, 0.12);
+      color: #15803d;
+      border-color: rgba(34, 197, 94, 0.2);
+    }
+
+    .status-badge.draft {
+      background: rgba(234, 179, 8, 0.12);
+      color: #b45309;
+      border-color: rgba(234, 179, 8, 0.25);
+    }
+
+    .like-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #ef4444;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.8rem;
+    }
+
+    .form-row select {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font: inherit;
+      padding: 12px 14px;
+      width: 100%;
+    }
+
+    .like-button:focus,
+    .detail:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        padding: 14px 16px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .toolbar {
+        justify-content: space-between;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
-
-  <!-- ナビゲーションバー -->
-  <nav class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <div class="flex items-center gap-3">
-          <div class="bg-indigo-600 p-2 rounded-lg">
-            <i class="fa-solid fa-share-nodes text-xl text-white"></i>
-          </div>
-          <span class="font-bold text-xl tracking-wider text-white">KnowShare <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/30">Hub</span></span>
-        </div>
-        <div class="flex items-center gap-4">
-          <button id="view-user-btn" onclick="switchView('user')" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
-            <i class="fa-solid fa-globe mr-2"></i>閲覧モード
-          </button>
-          <button id="view-admin-btn" onclick="tryOpenAdmin()" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-700 text-slate-300 hover:bg-slate-600">
-            <i class="fa-solid fa-user-shield mr-2"></i>管理画面
-          </button>
-        </div>
-      </div>
+<body>
+  <header class="topbar">
+    <div class="brand">KnowShare <span>Hub</span></div>
+    <div class="toolbar">
+      <button id="themeToggle" class="theme-button" type="button" aria-label="Toggle theme">
+        <span id="themeIcon">🌙</span>
+        <span id="themeLabel">ダーク</span>
+      </button>
+      <button id="userButton" class="ghost-button" type="button">閲覧モード</button>
+      <button id="adminButton" class="primary-button" type="button">管理画面</button>
     </div>
-  </nav>
+  </header>
 
-  <!-- メインコンテンツ -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    
-    <!-- ユーザー閲覧画面 -->
-    <section id="user-view" class="space-y-8">
-      <div class="bg-gradient-to-r from-indigo-900/40 via-slate-800 to-slate-800 border border-slate-700/60 rounded-2xl p-8 relative overflow-hidden">
-        <div class="relative z-10 max-w-2xl space-y-4">
-          <h1 class="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">開発・ノウハウ共有ポータル</h1>
-          <p class="text-slate-400 text-sm leading-relaxed">最新の技術知見、チーム内ノウハウ、アップデート情報を集約。管理者ダッシュボードからコンテンツをいつでも更新可能。</p>
-          <div class="flex flex-wrap gap-3 pt-2">
-            <input type="text" id="search-input" onkeyup="filterArticles()" placeholder="キーワードで記事を検索..." class="bg-slate-900/80 border border-slate-700 text-slate-100 text-sm rounded-xl px-4 py-2.5 w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          </div>
-        </div>
+  <main id="portalSection" class="content">
+    <section class="hero">
+      <div>
+        <h1>開発・ノウハウ共有ポータル</h1>
+        <p>
+          最新の技術知見、チーム内ノウハウ、運用メモを集約して共有できます。
+          管理画面から記事の更新も簡単に行え、情報の整理と公開をスムーズに進められます。
+        </p>
       </div>
 
-      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-          <i class="fa-solid fa-newspaper text-indigo-400"></i> 最新記事一覧
-        </h2>
-        <span id="article-count" class="text-xs font-semibold bg-slate-800 text-slate-400 px-3 py-1 rounded-full border border-slate-700">0 件</span>
-      </div>
-
-      <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- JSで記事を挿入 -->
-      </div>
-    </section>
-
-    <!-- 管理者ダッシュボード -->
-    <section id="admin-view" class="hidden space-y-8">
-      <div class="flex items-center justify-between bg-slate-800 p-6 rounded-2xl border border-slate-700">
-        <div>
-          <h1 class="text-2xl font-bold text-white flex items-center gap-3">
-            <i class="fa-solid fa-sliders text-indigo-400"></i> 管理者ダッシュボード
-          </h1>
-          <p class="text-slate-400 text-sm mt-1">ナレッジ記事の投稿・編集・アナリティクスの確認ができます。</p>
+      <div class="stats" aria-label="Summary statistics">
+        <div class="stat-card">
+          <small>総記事数</small>
+          <strong id="statTotal">0</strong>
         </div>
-        <div class="flex items-center gap-3">
-          <button onclick="logoutAdmin()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium px-4 py-2.5 rounded-xl text-sm transition border border-slate-600">
-            <i class="fa-solid fa-lock mr-2"></i>ログアウト
-          </button>
-          <button onclick="togglePostModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
-            <i class="fa-solid fa-plus"></i> 新規記事作成
-          </button>
+        <div class="stat-card">
+          <small>総いいね数</small>
+          <strong id="statLikes">0</strong>
         </div>
-      </div>
-
-      <!-- アナリティクスカード -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-xl">
-          <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">総記事数</div>
-          <div id="stat-total" class="text-3xl font-bold text-white mt-2">0</div>
+        <div class="stat-card">
+          <small>カテゴリ数</small>
+          <strong id="statCategories">0</strong>
         </div>
-        <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-xl">
-          <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">総いいね数</div>
-          <div id="stat-likes" class="text-3xl font-bold text-indigo-400 mt-2">0</div>
-        </div>
-        <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-xl">
-          <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">アクティブカテゴリ</div>
-          <div id="stat-categories" class="text-3xl font-bold text-emerald-400 mt-2">0</div>
-        </div>
-      </div>
-
-      <!-- 記事管理テーブル -->
-      <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
-          <h3 class="font-bold text-slate-200">記事データの管理</h3>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs border-b border-slate-700">
-              <tr>
-                <th class="px-6 py-3">タイトル</th>
-                <th class="px-6 py-3">カテゴリ</th>
-                <th class="px-6 py-3">投稿日</th>
-                <th class="px-6 py-3">いいね</th>
-                <th class="px-6 py-3 text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody id="admin-table-body" class="divide-y divide-slate-700/50">
-              <!-- JSでテーブル行を挿入 -->
-            </tbody>
-          </table>
+        <div class="stat-card">
+          <small>更新日</small>
+          <strong id="statUpdated">0</strong>
         </div>
       </div>
     </section>
 
+    <div class="search-row">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input id="searchInput" type="text" placeholder="記事を検索" aria-label="記事検索" />
+      </div>
+      <div id="filters" class="filters" aria-label="カテゴリフィルター"></div>
+    </div>
+
+    <div class="card-grid" id="articlesGrid"></div>
   </main>
 
-  <!-- パスワード認証モーダル -->
-  <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl p-6 space-y-5 shadow-2xl">
-      <div class="text-center space-y-2">
-        <div class="bg-indigo-600/20 text-indigo-400 w-12 h-12 rounded-full flex items-center justify-center mx-auto border border-indigo-500/30">
-          <i class="fa-solid fa-lock text-xl"></i>
-        </div>
-        <h3 class="font-bold text-lg text-white">管理者認証</h3>
-        <p class="text-xs text-slate-400">管理画面に入るにはパスワードを入力してください。</p>
+  <section id="adminSection" class="admin-shell hidden">
+    <div class="admin-panel">
+      <div class="admin-header">
+        <h2>管理者ダッシュボード</h2>
+        <button id="logoutAdmin" class="ghost-button" type="button">ログアウト</button>
       </div>
-      <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
-        <div>
-          <input type="password" id="admin-password-input" placeholder="パスワードを入力" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <p id="auth-error" class="text-xs text-rose-400 mt-2 hidden">パスワードが間違っています。</p>
+
+      <div class="admin-grid">
+        <div class="admin-card">
+          <small>総記事数</small>
+          <strong id="adminTotal">0</strong>
         </div>
-        <div class="flex items-center justify-end gap-2">
-          <button type="button" onclick="toggleAuthModal(false)" class="w-full py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-700 transition">キャンセルする</button>
-          <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/30">認証する</button>
+        <div class="admin-card">
+          <small>公開中</small>
+          <strong id="adminPublished">0</strong>
+        </div>
+        <div class="admin-card">
+          <small>下書き</small>
+          <strong id="adminDrafts">0</strong>
+        </div>
+      </div>
+
+      <div class="admin-toolbar">
+        <h3>記事を追加</h3>
+        <button id="newArticleButton" class="primary-button" type="button">新規投稿</button>
+      </div>
+
+      <form id="articleForm" class="article-form hidden">
+        <div class="form-row">
+          <label for="articleTitle">タイトル</label>
+          <input id="articleTitle" type="text" maxlength="80" placeholder="記事タイトルを入力" />
+        </div>
+        <div class="form-row">
+          <label for="articleStatus">公開状態</label>
+          <select id="articleStatus">
+            <option value="published">公開</option>
+            <option value="draft">下書き</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="articleBody">本文</label>
+          <textarea id="articleBody" rows="6" placeholder="記事の本文を入力してください"></textarea>
+        </div>
+        <div class="form-row form-actions">
+          <button type="button" id="cancelEdit" class="ghost-button">キャンセル</button>
+          <button type="submit" class="primary-button" id="saveArticleButton">保存</button>
+        </div>
+        <p id="articleFormError" class="error-text hidden">タイトルと本文を入力してください。</p>
+      </form>
+
+      <div class="admin-list-wrap">
+        <h3>記事一覧</h3>
+        <div id="adminList" class="admin-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="adminModal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+    <div class="modal-box">
+      <h3>管理者認証</h3>
+      <p>管理画面にアクセスするにはパスワードを入力してください。</p>
+      <form id="adminForm">
+        <input id="adminPassword" type="password" placeholder="パスワードを入力" autocomplete="current-password" />
+        <p id="adminError" class="error-text hidden">パスワードが違います。</p>
+        <div class="modal-actions">
+          <button type="button" id="cancelAdmin" class="ghost-button">キャンセル</button>
+          <button type="submit" class="primary-button">認証</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- 投稿作成・編集モーダル -->
-  <div id="post-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-6 space-y-5 shadow-2xl">
-      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-        <h3 id="modal-title" class="font-bold text-lg text-white">新規記事作成</h3>
-        <button onclick="togglePostModal(false)" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+  <div id="detailModal" class="modal-overlay hidden" aria-modal="true" role="dialog">
+    <div class="modal-box detail-box">
+      <div class="detail-header">
+        <div>
+          <span id="detailCategory" class="badge detail-badge">カテゴリ</span>
+          <h3 id="detailTitle">タイトル</h3>
+        </div>
+        <button id="closeDetail" class="ghost-button" type="button">閉じる</button>
       </div>
-      <form id="post-form" onsubmit="handlePostSubmit(event)" class="space-y-4">
-        <input type="hidden" id="post-id">
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">タイトル</label>
-          <input type="text" id="post-title" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">カテゴリ</label>
-          <select id="post-category" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="技術情報">技術情報</option>
-            <option value="開発ノウハウ">開発ノウハウ</option>
-            <option value="お知らせ">お知らせ</option>
-            <option value="環境構築">環境構築</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">内容</label>
-          <textarea id="post-content" rows="4" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-        </div>
-        <div class="flex items-center justify-end gap-3 pt-2">
-          <button type="button" onclick="togglePostModal(false)" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-700">キャンセル</button>
-          <button type="submit" class="px-5 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30">保存する</button>
-        </div>
-      </form>
+      <p id="detailMeta" class="detail-meta">2026-08-31</p>
+      <div id="detailBody" class="detail-body"></div>
     </div>
   </div>
 
   <script>
-    // 管理者パスワード設定　変更しない
-    const ADMIN_PASSWORD = "Chizuko";
-    let isAdminAuthenticated = false;
+    const storageKey = 'knowshare-theme';
+    const adminPassword = 'Chizuko';
+    const defaultCategory = '未分類';
 
-    // 初期サンプルデータ
-    let articles = JSON.parse(localStorage.getItem('knowshare_articles')) || [
-      { id: 1, title: 'Firebase Hosting + VS Code環境の構築手順', category: '環境構築', content: 'Firebase CLIをグローバル導入し、firebase init hostingを実行することで簡単にWebアプリを公開可能。', date: '2026-08-30', likes: 12 },
-      { id: 2, title: 'TypeScriptを活用した開発の利点', category: '技術情報', content: '静的型付けによるバグの早期発見と、エディタ補完の強力さにより開発効率が大幅に向上します。', date: '2026-08-28', likes: 8 }
+    const initialArticles = [
+      { id: 1, title: 'Firebase Hosting + VS Code 環境の構築手順', category: '環境構築', date: '2026-08-30', likes: 12, description: 'Firebase CLI とローカル開発設定を整え、短時間で公開環境を作る手順を整理しました。', status: 'published' },
+      { id: 2, title: 'TypeScript で開発効率を高めるポイント', category: '技術情報', date: '2026-08-28', likes: 21, description: '型定義の明確化と補完の強化により、バグ発見とコードの保守性が大きく改善します。', status: 'published' },
+      { id: 3, title: 'チームレビューの観点テンプレート', category: '開発ノウハウ', date: '2026-08-22', likes: 8, description: 'レビュー時に確認する視点を固めることで、品質のばらつきを抑えやすくなります。', status: 'published' },
+      { id: 4, title: '週次アップデート: 共有ルールの見直し', category: 'お知らせ', date: '2026-08-18', likes: 5, description: '共有ルールと更新頻度の整理を行い、情報の見つけやすさを向上させました。', status: 'published' }
     ];
 
-    function saveArticles() {
-      localStorage.setItem('knowshare_articles', JSON.stringify(articles));
-    }
+    let articles = [...initialArticles];
+    let currentCategory = 'すべて';
+    let searchText = '';
+    let adminLoggedIn = false;
+    let editingArticleId = null;
 
-    function tryOpenAdmin() {
-      if (isAdminAuthenticated) {
-        switchView('admin');
-      } else {
-        toggleAuthModal(true);
+    function setTheme(mode) {
+      document.documentElement.setAttribute('data-theme', mode);
+      localStorage.setItem(storageKey, mode);
+
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (icon && label) {
+        icon.textContent = mode === 'dark' ? '☀️' : '🌙';
+        label.textContent = mode === 'dark' ? 'ライト' : 'ダーク';
       }
     }
 
-    function toggleAuthModal(show) {
-      const modal = document.getElementById('auth-modal');
-      const errorMsg = document.getElementById('auth-error');
-      const input = document.getElementById('admin-password-input');
-      
-      if (show) {
-        input.value = '';
-        errorMsg.classList.add('hidden');
+    function initializeTheme() {
+      const saved = localStorage.getItem(storageKey);
+      const preferredDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initial = saved || (preferredDark ? 'dark' : 'light');
+      setTheme(initial);
+    }
+
+    function renderFilters() {
+      const publicArticles = articles.filter(item => item.status !== 'draft');
+      const filters = ['すべて', ...new Set(publicArticles.map(item => item.category))];
+      if (!filters.includes(currentCategory)) {
+        currentCategory = 'すべて';
       }
-      modal.style.display = show ? 'flex' : 'none';
-      if (show) input.focus();
+      const host = document.getElementById('filters');
+      host.innerHTML = filters.map(category => {
+        const active = category === currentCategory;
+        return '<button type="button" class="filter-pill ' + (active ? 'active' : '') + '" data-category="' + category + '">' + category + '</button>';
+      }).join('');
     }
 
-    function handleAuthSubmit(e) {
-      e.preventDefault();
-      const input = document.getElementById('admin-password-input').value;
-      const errorMsg = document.getElementById('auth-error');
+    function getFilteredArticles() {
+      return articles.filter(item => item.status !== 'draft').filter(item => {
+        const matchesCategory = currentCategory === 'すべて' || item.category === currentCategory;
+        const haystack = (item.title + ' ' + item.category + ' ' + item.description).toLowerCase();
+        const matchesSearch = !searchText || haystack.includes(searchText.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+    }
 
-      if (input === ADMIN_PASSWORD) {
-        isAdminAuthenticated = true;
-        toggleAuthModal(false);
-        switchView('admin');
-      } else {
-        errorMsg.classList.remove('hidden');
+    function renderStats() {
+      const published = articles.filter(item => item.status !== 'draft');
+      const total = published.length;
+      if (!total) {
+        document.getElementById('statTotal').textContent = '0';
+        document.getElementById('statLikes').textContent = '0';
+        document.getElementById('statCategories').textContent = '0';
+        document.getElementById('statUpdated').textContent = '0';
+        document.getElementById('adminTotal').textContent = String(articles.length);
+        document.getElementById('adminPublished').textContent = '0';
+        document.getElementById('adminDrafts').textContent = String(articles.filter(item => item.status === 'draft').length);
+        return;
       }
+
+      const newestDate = published.reduce((latest, item) => item.date > latest ? item.date : latest, published[0].date);
+      document.getElementById('statTotal').textContent = String(total);
+      document.getElementById('statLikes').textContent = String(published.reduce((sum, item) => sum + item.likes, 0));
+      document.getElementById('statCategories').textContent = String(new Set(published.map(item => item.category)).size);
+      document.getElementById('statUpdated').textContent = String(new Date(newestDate).getDate());
+      document.getElementById('adminTotal').textContent = String(articles.length);
+      document.getElementById('adminPublished').textContent = String(published.length);
+      document.getElementById('adminDrafts').textContent = String(articles.filter(item => item.status === 'draft').length);
     }
 
-    function logoutAdmin() {
-      isAdminAuthenticated = false;
-      switchView('user');
-    }
+    function renderArticles() {
+      const grid = document.getElementById('articlesGrid');
+      const filtered = getFilteredArticles();
 
-    function switchView(view) {
-      const userView = document.getElementById('user-view');
-      const adminView = document.getElementById('admin-view');
-      const userBtn = document.getElementById('view-user-btn');
-      const adminBtn = document.getElementById('view-admin-btn');
-
-      if (view === 'user') {
-        userView.classList.remove('hidden');
-        adminView.classList.add('hidden');
-        userBtn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30';
-        adminBtn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-700 text-slate-300 hover:bg-slate-600';
-      } else {
-        userView.classList.add('hidden');
-        adminView.classList.remove('hidden');
-        adminBtn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30';
-        userBtn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-700 text-slate-300 hover:bg-slate-600';
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="empty-state">条件に一致する記事はありません。</div>';
+        return;
       }
-      render();
-    }
 
-    function render() {
-      renderUserGrid();
-      renderAdminTable();
-      renderStats();
-    }
-
-    function renderUserGrid() {
-      const grid = document.getElementById('articles-grid');
-      const count = document.getElementById('article-count');
-      const search = document.getElementById('search-input').value.toLowerCase();
-
-      const filtered = articles.filter(a => 
-        a.title.toLowerCase().includes(search) || 
-        a.content.toLowerCase().includes(search) ||
-        a.category.toLowerCase().includes(search)
-      );
-
-      count.textContent = `${filtered.length} 件`;
-      grid.innerHTML = filtered.map(a => `
-        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between gap-4 hover:border-slate-600 transition">
-          <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${a.category}</span>
-              <span class="text-xs text-slate-400">${a.date}</span>
-            </div>
-            <h3 class="font-bold text-lg text-white leading-snug">${a.title}</h3>
-            <p class="text-slate-300 text-sm leading-relaxed line-clamp-3">${a.content}</p>
+      grid.innerHTML = filtered.map(article => `
+        <article class="card">
+          <div class="card-head">
+            <span class="badge">${article.category}</span>
+            <span class="date">${article.date}</span>
           </div>
-          <div class="flex items-center justify-between pt-4 border-t border-slate-700/50">
-            <button onclick="likeArticle(${a.id})" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1.5">
-              <i class="fa-solid fa-heart text-rose-500"></i> <span>${a.likes}</span>
+          <h3>${article.title}</h3>
+          <p>${article.description}</p>
+          <div class="card-foot">
+            <button type="button" class="like-button" data-like-id="${article.id}" aria-label="いいねを追加">
+              <i class="fa-solid fa-heart"></i> ${article.likes}
             </button>
-            <span class="text-xs text-indigo-400 font-medium">詳細を見る →</span>
+            <span class="detail" data-id="${article.id}" role="button" tabindex="0">詳細を見る</span>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderAdminList() {
+      const host = document.getElementById('adminList');
+      if (!articles.length) {
+        host.innerHTML = '<div class="empty-state">まだ記事がありません。</div>';
+        return;
+      }
+      host.innerHTML = articles.map(article => `
+        <div class="admin-item">
+          <div>
+            <div class="admin-item-title">${article.title}</div>
+            <div class="admin-item-meta">${article.category} · ${article.date}</div>
+            <span class="status-badge ${article.status === 'published' ? 'published' : 'draft'}">${article.status === 'published' ? '公開' : '下書き'}</span>
+          </div>
+          <div class="admin-item-actions">
+            <button type="button" class="ghost-button admin-toggle-status" data-id="${article.id}">${article.status === 'published' ? '下書きに戻す' : '公開する'}</button>
+            <button type="button" class="ghost-button admin-edit" data-id="${article.id}">編集</button>
+            <button type="button" class="primary-button admin-delete" data-id="${article.id}">削除</button>
           </div>
         </div>
       `).join('');
     }
 
-    function renderAdminTable() {
-      const body = document.getElementById('admin-table-body');
-      body.innerHTML = articles.map(a => `
-        <tr class="hover:bg-slate-700/30 transition">
-          <td class="px-6 py-4 font-medium text-white">${a.title}</td>
-          <td class="px-6 py-4"><span class="px-2.5 py-1 text-xs rounded-md bg-slate-700 text-slate-300">${a.category}</span></td>
-          <td class="px-6 py-4 text-slate-400 text-xs">${a.date}</td>
-          <td class="px-6 py-4 text-xs font-semibold text-rose-400"><i class="fa-solid fa-heart mr-1"></i>${a.likes}</td>
-          <td class="px-6 py-4 text-right space-x-2">
-            <button onclick="editArticle(${a.id})" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium text-slate-200">編集</button>
-            <button onclick="deleteArticle(${a.id})" class="px-3 py-1 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-medium">削除</button>
-          </td>
-        </tr>
-      `).join('');
+    function render() {
+      renderFilters();
+      renderStats();
+      renderArticles();
+      renderAdminList();
     }
 
-    function renderStats() {
-      document.getElementById('stat-total').textContent = articles.length;
-      document.getElementById('stat-likes').textContent = articles.reduce((sum, a) => sum + a.likes, 0);
-      const categories = new Set(articles.map(a => a.category));
-      document.getElementById('stat-categories').textContent = categories.size;
+    function openAdminModal() {
+      document.getElementById('adminModal').classList.remove('hidden');
+      document.getElementById('adminPassword').value = '';
+      document.getElementById('adminError').classList.add('hidden');
+      document.getElementById('adminPassword').focus();
     }
 
-    function filterArticles() {
-      renderUserGrid();
+    function closeAdminModal() {
+      document.getElementById('adminModal').classList.add('hidden');
+      document.getElementById('adminError').classList.add('hidden');
     }
 
-    function likeArticle(id) {
-      const target = articles.find(a => a.id === id);
-      if (target) {
-        target.likes += 1;
-        saveArticles();
-        render();
+    function showAdminView() {
+      document.getElementById('portalSection').classList.add('hidden');
+      document.getElementById('adminSection').classList.remove('hidden');
+      adminLoggedIn = true;
+    }
+
+    function showPortalView() {
+      document.getElementById('portalSection').classList.remove('hidden');
+      document.getElementById('adminSection').classList.add('hidden');
+      adminLoggedIn = false;
+    }
+
+    function resetArticleForm() {
+      editingArticleId = null;
+      document.getElementById('articleForm').reset();
+      document.getElementById('articleStatus').value = 'published';
+      document.getElementById('articleFormError').classList.add('hidden');
+      document.getElementById('articleForm').classList.add('hidden');
+      document.getElementById('newArticleButton').textContent = '新規投稿';
+    }
+
+    function openNewArticleForm() {
+      editingArticleId = null;
+      document.getElementById('articleForm').classList.remove('hidden');
+      document.getElementById('articleFormError').classList.add('hidden');
+      document.getElementById('articleTitle').value = '';
+      document.getElementById('articleBody').value = '';
+      document.getElementById('articleStatus').value = 'published';
+      document.getElementById('articleTitle').focus();
+      document.getElementById('saveArticleButton').textContent = '保存';
+      document.getElementById('newArticleButton').textContent = '新規投稿中';
+    }
+
+    function openEditArticleForm(article) {
+      editingArticleId = article.id;
+      document.getElementById('articleForm').classList.remove('hidden');
+      document.getElementById('articleFormError').classList.add('hidden');
+      document.getElementById('articleTitle').value = article.title;
+      document.getElementById('articleBody').value = article.description;
+      document.getElementById('articleStatus').value = article.status || 'published';
+      document.getElementById('articleTitle').focus();
+      document.getElementById('saveArticleButton').textContent = '更新';
+      document.getElementById('newArticleButton').textContent = '編集中';
+    }
+
+    function openDetailModal(articleId) {
+      const article = articles.find(item => item.id === Number(articleId));
+      if (!article) return;
+      document.getElementById('detailTitle').textContent = article.title;
+      document.getElementById('detailCategory').textContent = article.category;
+      document.getElementById('detailMeta').textContent = `${article.date} · いいね ${article.likes}`;
+      document.getElementById('detailBody').innerHTML = article.description
+        .split(/\n+/)
+        .map(line => '<p>' + line + '</p>')
+        .join('');
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    function saveArticle(event) {
+      event.preventDefault();
+      const title = document.getElementById('articleTitle').value.trim();
+      const description = document.getElementById('articleBody').value.trim();
+      const status = document.getElementById('articleStatus').value;
+      const error = document.getElementById('articleFormError');
+
+      if (!title || !description) {
+        error.classList.remove('hidden');
+        return;
       }
-    }
 
-    function togglePostModal(show) {
-      const modal = document.getElementById('post-modal');
-      if (!show) {
-        document.getElementById('post-form').reset();
-        document.getElementById('post-id').value = '';
-        document.getElementById('modal-title').textContent = '新規記事作成';
-      }
-      modal.style.display = show ? 'flex' : 'none';
-    }
-
-    function handlePostSubmit(e) {
-      e.preventDefault();
-      const id = document.getElementById('post-id').value;
-      const title = document.getElementById('post-title').value;
-      const category = document.getElementById('post-category').value;
-      const content = document.getElementById('post-content').value;
-
-      if (id) {
-        const target = articles.find(a => a.id === Number(id));
-        if (target) {
-          target.title = title;
-          target.category = category;
-          target.content = content;
+      if (editingArticleId !== null) {
+        const index = articles.findIndex(article => article.id === editingArticleId);
+        if (index !== -1) {
+          articles[index] = {
+            ...articles[index],
+            title,
+            description,
+            category: articles[index].category || defaultCategory,
+            status,
+            date: new Date().toISOString().slice(0, 10)
+          };
         }
       } else {
-        const newArticle = {
+        articles.unshift({
           id: Date.now(),
           title,
-          category,
-          content,
-          date: new Date().toISOString().split('T')[0],
-          likes: 0
-        };
-        articles.unshift(newArticle);
+          category: defaultCategory,
+          date: new Date().toISOString().slice(0, 10),
+          likes: 0,
+          description,
+          status
+        });
       }
 
-      saveArticles();
-      togglePostModal(false);
+      resetArticleForm();
       render();
     }
 
-    function editArticle(id) {
-      const target = articles.find(a => a.id === id);
-      if (!target) return;
-
-      document.getElementById('post-id').value = target.id;
-      document.getElementById('post-title').value = target.title;
-      document.getElementById('post-category').value = target.category;
-      document.getElementById('post-content').value = target.content;
-      document.getElementById('modal-title').textContent = '記事の編集';
-
-      togglePostModal(true);
-    }
-
-    function deleteArticle(id) {
-      if (confirm('この記事を削除してもよろしいですか？')) {
-        articles = articles.filter(a => a.id !== id);
-        saveArticles();
-        render();
+    function deleteArticle(articleId) {
+      const article = articles.find(item => item.id === Number(articleId));
+      if (!article) return;
+      const confirmed = window.confirm(`「${article.title}」を削除しますか？`);
+      if (!confirmed) return;
+      articles = articles.filter(item => item.id !== Number(articleId));
+      if (editingArticleId === Number(articleId)) {
+        resetArticleForm();
       }
+      render();
     }
 
-    // 初期表示実行
+    function toggleArticleStatus(articleId) {
+      const target = articles.find(item => item.id === Number(articleId));
+      if (!target) return;
+      target.status = target.status === 'published' ? 'draft' : 'published';
+      render();
+    }
+
+    function toggleLike(articleId) {
+      const target = articles.find(item => item.id === Number(articleId));
+      if (!target) return;
+      target.likes += 1;
+      render();
+    }
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      setTheme(current);
+    });
+
+    document.getElementById('searchInput').addEventListener('input', (event) => {
+      searchText = event.target.value.trim();
+      renderArticles();
+    });
+
+    document.getElementById('filters').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-category]');
+      if (!button) return;
+      currentCategory = button.dataset.category;
+      render();
+    });
+
+    document.getElementById('adminButton').addEventListener('click', () => {
+      if (adminLoggedIn) {
+        showAdminView();
+        return;
+      }
+      openAdminModal();
+    });
+
+    document.getElementById('userButton').addEventListener('click', () => {
+      showPortalView();
+      closeAdminModal();
+      closeDetailModal();
+    });
+
+    document.getElementById('cancelAdmin').addEventListener('click', closeAdminModal);
+
+    document.getElementById('adminForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const input = document.getElementById('adminPassword').value.trim();
+      if (input === adminPassword) {
+        closeAdminModal();
+        showAdminView();
+        return;
+      }
+      document.getElementById('adminError').classList.remove('hidden');
+    });
+
+    document.getElementById('logoutAdmin').addEventListener('click', () => {
+      showPortalView();
+      resetArticleForm();
+    });
+
+    document.getElementById('newArticleButton').addEventListener('click', openNewArticleForm);
+    document.getElementById('cancelEdit').addEventListener('click', resetArticleForm);
+    document.getElementById('articleForm').addEventListener('submit', saveArticle);
+    document.getElementById('closeDetail').addEventListener('click', closeDetailModal);
+
+    document.getElementById('articlesGrid').addEventListener('click', (event) => {
+      const likeButton = event.target.closest('.like-button');
+      if (likeButton) {
+        toggleLike(likeButton.dataset.likeId);
+        return;
+      }
+      const detail = event.target.closest('.detail');
+      if (detail) {
+        openDetailModal(detail.dataset.id);
+      }
+    });
+
+    document.getElementById('articlesGrid').addEventListener('keydown', (event) => {
+      const detail = event.target.closest('.detail');
+      if (!detail) return;
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openDetailModal(detail.dataset.id);
+      }
+    });
+
+    document.getElementById('adminList').addEventListener('click', (event) => {
+      const editButton = event.target.closest('.admin-edit');
+      const deleteButton = event.target.closest('.admin-delete');
+      const toggleStatusButton = event.target.closest('.admin-toggle-status');
+      if (editButton) {
+        const article = articles.find(item => item.id === Number(editButton.dataset.id));
+        if (article) openEditArticleForm(article);
+        return;
+      }
+      if (toggleStatusButton) {
+        toggleArticleStatus(toggleStatusButton.dataset.id);
+        return;
+      }
+      if (deleteButton) {
+        deleteArticle(deleteButton.dataset.id);
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeAdminModal();
+        closeDetailModal();
+      }
+    });
+
+    initializeTheme();
     render();
   </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </body>
 </html>
