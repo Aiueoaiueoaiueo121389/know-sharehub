@@ -756,10 +756,21 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
     const storageKey = 'knowshare-theme';
+    const articleStorageKey = 'knowshare-articles';
     const adminPassword = 'Chizuko';
     const defaultCategory = '未分類';
+    const firebaseConfig = {
+      apiKey: 'AIzaSyD-rqGz3KNNJC7ut-jguc4FdrvS67l1wJo',
+      authDomain: 'knowsharehub-demo.firebaseapp.com',
+      projectId: 'knowsharehub-demo',
+      storageBucket: 'knowsharehub-demo.firebasestorage.app',
+      messagingSenderId: '444164392500',
+      appId: '1:444164392500:web:c2321b874d3ee556aa2c61'
+    };
 
     const initialArticles = [
       { id: 1, title: 'Firebase Hosting + VS Code 環境の構築手順', category: '環境構築', date: '2026-08-30', likes: 12, description: 'Firebase CLI とローカル開発設定を整え、短時間で公開環境を作る手順を整理しました。', status: 'published' },
@@ -768,11 +779,87 @@
       { id: 4, title: '週次アップデート: 共有ルールの見直し', category: 'お知らせ', date: '2026-08-18', likes: 5, description: '共有ルールと更新頻度の整理を行い、情報の見つけやすさを向上させました。', status: 'published' }
     ];
 
-    let articles = [...initialArticles];
+    let articles = [];
     let currentCategory = 'すべて';
     let searchText = '';
     let adminLoggedIn = false;
     let editingArticleId = null;
+    let firebaseDb = null;
+    let isFirebaseConfigured = false;
+
+    function loadArticlesFromLocalStorage() {
+      try {
+        const saved = localStorage.getItem(articleStorageKey);
+        if (!saved) return [...initialArticles];
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length) {
+          return parsed;
+        }
+      } catch (error) {
+        console.warn('Failed to load saved articles from localStorage:', error);
+      }
+      return [...initialArticles];
+    }
+
+    function persistArticlesToLocalStorage() {
+      localStorage.setItem(articleStorageKey, JSON.stringify(articles));
+    }
+
+    function initializeFirebase() {
+      if (!window.firebase || !window.firebase.apps) return false;
+      const hasProjectConfig = Object.values(firebaseConfig).every(value => value && !String(value).includes('YOUR_'));
+      if (!hasProjectConfig) return false;
+
+      try {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        firebaseDb = firebase.firestore();
+        isFirebaseConfigured = true;
+        return true;
+      } catch (error) {
+        console.warn('Firebase initialization failed:', error);
+        firebaseDb = null;
+        isFirebaseConfigured = false;
+        return false;
+      }
+    }
+
+    async function loadArticlesFromFirebase() {
+      if (!isFirebaseConfigured || !firebaseDb) return;
+      try {
+        const snapshot = await firebaseDb.collection('portal').doc('state').get();
+        if (!snapshot.exists) return;
+        const data = snapshot.data();
+        if (Array.isArray(data.articles) && data.articles.length) {
+          articles = data.articles;
+          persistArticlesToLocalStorage();
+        }
+      } catch (error) {
+        console.warn('Failed to load articles from Firebase:', error);
+      }
+    }
+
+    async function persistArticles() {
+      persistArticlesToLocalStorage();
+      if (!isFirebaseConfigured || !firebaseDb) return;
+      try {
+        await firebaseDb.collection('portal').doc('state').set({
+          articles,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (error) {
+        console.warn('Failed to sync articles to Firebase:', error);
+      }
+    }
+
+    async function initializeArticles() {
+      articles = loadArticlesFromLocalStorage();
+      if (initializeFirebase()) {
+        await loadArticlesFromFirebase();
+      }
+      render();
+    }
 
     function setTheme(mode) {
       document.documentElement.setAttribute('data-theme', mode);
@@ -1005,6 +1092,7 @@
         });
       }
 
+      persistArticles();
       resetArticleForm();
       render();
     }
@@ -1018,6 +1106,7 @@
       if (editingArticleId === Number(articleId)) {
         resetArticleForm();
       }
+      persistArticles();
       render();
     }
 
@@ -1025,6 +1114,7 @@
       const target = articles.find(item => item.id === Number(articleId));
       if (!target) return;
       target.status = target.status === 'published' ? 'draft' : 'published';
+      persistArticles();
       render();
     }
 
@@ -1032,6 +1122,7 @@
       const target = articles.find(item => item.id === Number(articleId));
       if (!target) return;
       target.likes += 1;
+      persistArticles();
       render();
     }
 
@@ -1136,7 +1227,7 @@
     });
 
     initializeTheme();
-    render();
+    initializeArticles();
   </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </body>
