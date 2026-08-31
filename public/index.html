@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>情報共有ポータル - KnowShare</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+    body { font-family: 'Noto Sans JP', 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- ナビゲーションバー -->
+  <nav class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <div class="bg-indigo-600 p-2 rounded-lg">
+            <i class="fa-solid fa-share-nodes text-xl text-white"></i>
+          </div>
+          <span class="font-bold text-xl tracking-wider text-white">KnowShare <span class="text-xs bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/30">Hub</span></span>
+        </div>
+        <div class="flex items-center gap-4">
+          <button id="view-user-btn" onclick="switchView('user')" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
+            <i class="fa-solid fa-globe mr-2"></i>閲覧モード
+          </button>
+          <button id="view-admin-btn" onclick="switchView('admin')" class="px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-700 text-slate-300 hover:bg-slate-600">
+            <i class="fa-solid fa-user-shield mr-2"></i>管理画面
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- ユーザー閲覧画面 -->
+    <section id="user-view" class="space-y-8">
+      <div class="bg-gradient-to-r from-indigo-900/40 via-slate-800 to-slate-800 border border-slate-700/60 rounded-2xl p-8 relative overflow-hidden">
+        <div class="relative z-10 max-w-2xl space-y-4">
+          <h1 class="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">開発・ノウハウ共有ポータル</h1>
+          <p class="text-slate-400 text-sm leading-relaxed">最新の技術知見、チーム内ノウハウ、アップデート情報を集約。管理者ダッシュボードからコンテンツをいつでも更新可能。</p>
+          <div class="flex flex-wrap gap-3 pt-2">
+            <input type="text" id="search-input" onkeyup="filterArticles()" placeholder="キーワードで記事を検索..." class="bg-slate-900/80 border border-slate-700 text-slate-100 text-sm rounded-xl px-4 py-2.5 w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+        <h2 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+          <i class="fa-solid fa-newspaper text-indigo-400"></i> 最新記事一覧
+        </h2>
+        <span id="article-count" class="text-xs font-semibold bg-slate-800 text-slate-400 px-3 py-1 rounded-full border border-slate-700">0 件</span>
+      </div>
+
+      <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- JSで記事を挿入 -->
+      </div>
+    </section>
+
+    <!-- 管理者ダッシュボード -->
+    <section id="admin-view" class="hidden space-y-8">
+      <div class="flex items-center justify-between bg-slate-800 p-6 rounded-2xl border border-slate-700">
+        <div>
+          <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+            <i class="fa-solid fa-sliders text-indigo-400"></i> 管理者ダッシュボード
+          </h1>
+          <p class="text-slate-400 text-sm mt-1">ナレッジ記事の投稿・編集・アナリティクスの確認ができます。</p>
+        </div>
+        <button onclick="togglePostModal(true)" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+          <i class="fa-solid fa-plus"></i> 新規記事作成
+        </button>
+      </div>
+
+      <!-- アナリティクスカード -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-xl">
+          <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">総記事数</div>
+          <div id="stat-total" class="text-3xl font-bold text-white mt-2">0</div>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-xl">
+          <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">総いいね数</div>
+          <div id="stat-likes" class="text-3xl font-bold text-indigo-400 mt-2">0</div>
+        </div>
+        <div class="bg-slate-800/60 border border-slate-700/60 p-5 rounded-xl">
+          <div class="text-slate-400 text-xs font-medium uppercase tracking-wider">アクティブカテゴリ</div>
+          <div id="stat-categories" class="text-3xl font-bold text-emerald-400 mt-2">0</div>
+        </div>
+      </div>
+
+      <!-- 記事管理テーブル -->
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+          <h3 class="font-bold text-slate-200">記事データの管理</h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-900/50 text-slate-400 uppercase text-xs border-b border-slate-700">
+              <tr>
+                <th class="px-6 py-3">タイトル</th>
+                <th class="px-6 py-3">カテゴリ</th>
+                <th class="px-6 py-3">投稿日</th>
+                <th class="px-6 py-3">いいね</th>
+                <th class="px-6 py-3 text-right">操作</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body" class="divide-y divide-slate-700/50">
+              <!-- JSでテーブル行を挿入 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 投稿作成・編集モーダル -->
+  <div id="post-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+        <h3 id="modal-title" class="font-bold text-lg text-white">新規記事作成</h3>
+        <button onclick="togglePostModal(false)" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="post-form" onsubmit="handlePostSubmit(event)" class="space-y-4">
+        <input type="hidden" id="post-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">タイトル</label>
+          <input type="text" id="post-title" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">カテゴリ</label>
+          <select id="post-category" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="技術情報">技術情報</option>
+            <option value="開発ノウハウ">開発ノウハウ</option>
+            <option value="お知らせ">お知らせ</option>
+            <option value="環境構築">環境構築</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">内容</label>
+          <textarea id="post-content" rows="4" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" onclick="togglePostModal(false)" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-700">キャンセル</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-600/30">保存する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // 初期サンプルデータ
+    let articles = JSON.parse(localStorage.getItem('knowshare_articles')) || [
+      { id: 1, title: 'Firebase Hosting + VS Code環境の構築手順', category: '環境構築', content: 'Firebase CLIをグローバル導入し、firebase init hostingを実行することで簡単にWebアプリを公開可能。', date: '2026-08-30', likes: 12 },
+      { id: 2, title: 'TypeScriptを活用した開発の利点', category: '技術情報', content: '静的型付けによるバグの早期発見と、エディタ補完の強力さにより開発効率が大幅に向上します。', date: '2026-08-28', likes: 8 }
+    ];
+
+    function saveArticles() {
+      localStorage.setItem('knowshare_articles', JSON.stringify(articles));
+    }
+
+    function switchView(view) {
+      const userView = document.getElementById('user-view');
+      const adminView = document.getElementById('admin-view');
+      const userBtn = document.getElementById('view-user-btn');
+      const adminBtn = document.getElementById('view-admin-btn');
+
+      if (view === 'user') {
+        userView.classList.remove('hidden');
+        adminView.classList.add('hidden');
+        userBtn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30';
+        adminBtn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-700 text-slate-300 hover:bg-slate-600';
+      } else {
+        userView.classList.add('hidden');
+        adminView.classList.remove('hidden');
+        adminBtn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition bg-indigo-600 text-white shadow-lg shadow-indigo-600/30';
+        userBtn.className = 'px-4 py-2 rounded-lg font-medium text-sm transition bg-slate-700 text-slate-300 hover:bg-slate-600';
+      }
+      render();
+    }
+
+    function render() {
+      renderUserGrid();
+      renderAdminTable();
+      renderStats();
+    }
+
+    function renderUserGrid() {
+      const grid = document.getElementById('articles-grid');
+      const count = document.getElementById('article-count');
+      const search = document.getElementById('search-input').value.toLowerCase();
+
+      const filtered = articles.filter(a => 
+        a.title.toLowerCase().includes(search) || 
+        a.content.toLowerCase().includes(search) ||
+        a.category.toLowerCase().includes(search)
+      );
+
+      count.textContent = `${filtered.length} 件`;
+      grid.innerHTML = filtered.map(a => `
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 flex flex-col justify-between gap-4 hover:border-slate-600 transition">
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">${a.category}</span>
+              <span class="text-xs text-slate-400">${a.date}</span>
+            </div>
+            <h3 class="font-bold text-lg text-white leading-snug">${a.title}</h3>
+            <p class="text-slate-300 text-sm leading-relaxed line-clamp-3">${a.content}</p>
+          </div>
+          <div class="flex items-center justify-between pt-4 border-t border-slate-700/50">
+            <button onclick="likeArticle(${a.id})" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-heart text-rose-500"></i> <span>${a.likes}</span>
+            </button>
+            <span class="text-xs text-indigo-400 font-medium">詳細を見る →</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderAdminTable() {
+      const body = document.getElementById('admin-table-body');
+      body.innerHTML = articles.map(a => `
+        <tr class="hover:bg-slate-700/30 transition">
+          <td class="px-6 py-4 font-medium text-white">${a.title}</td>
+          <td class="px-6 py-4"><span class="px-2.5 py-1 text-xs rounded-md bg-slate-700 text-slate-300">${a.category}</span></td>
+          <td class="px-6 py-4 text-slate-400 text-xs">${a.date}</td>
+          <td class="px-6 py-4 text-xs font-semibold text-rose-400"><i class="fa-solid fa-heart mr-1"></i>${a.likes}</td>
+          <td class="px-6 py-4 text-right space-x-2">
+            <button onclick="editArticle(${a.id})" class="px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-medium text-slate-200">編集</button>
+            <button onclick="deleteArticle(${a.id})" class="px-3 py-1 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 rounded-lg text-xs font-medium">削除</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderStats() {
+      document.getElementById('stat-total').textContent = articles.length;
+      document.getElementById('stat-likes').textContent = articles.reduce((sum, a) => sum + a.likes, 0);
+      const categories = new Set(articles.map(a => a.category));
+      document.getElementById('stat-categories').textContent = categories.size;
+    }
+
+    function filterArticles() {
+      renderUserGrid();
+    }
+
+    function likeArticle(id) {
+      const target = articles.find(a => a.id === id);
+      if (target) {
+        target.likes += 1;
+        saveArticles();
+        render();
+      }
+    }
+
+    function togglePostModal(show) {
+      const modal = document.getElementById('post-modal');
+      if (!show) {
+        document.getElementById('post-form').reset();
+        document.getElementById('post-id').value = '';
+        document.getElementById('modal-title').textContent = '新規記事作成';
+      }
+      modal.style.display = show ? 'flex' : 'none';
+    }
+
+    function handlePostSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('post-id').value;
+      const title = document.getElementById('post-title').value;
+      const category = document.getElementById('post-category').value;
+      const content = document.getElementById('post-content').value;
+
+      if (id) {
+        const target = articles.find(a => a.id === Number(id));
+        if (target) {
+          target.title = title;
+          target.category = category;
+          target.content = content;
+        }
+      } else {
+        const newArticle = {
+          id: Date.now(),
+          title,
+          category,
+          content,
+          date: new Date().toISOString().split('T')[0],
+          likes: 0
+        };
+        articles.unshift(newArticle);
+      }
+
+      saveArticles();
+      togglePostModal(false);
+      render();
+    }
+
+    function editArticle(id) {
+      const target = articles.find(a => a.id === id);
+      if (!target) return;
+
+      document.getElementById('post-id').value = target.id;
+      document.getElementById('post-title').value = target.title;
+      document.getElementById('post-category').value = target.category;
+      document.getElementById('post-content').value = target.content;
+      document.getElementById('modal-title').textContent = '記事の編集';
+
+      togglePostModal(true);
+    }
+
+    function deleteArticle(id) {
+      if (confirm('この記事を削除してもよろしいですか？')) {
+        articles = articles.filter(a => a.id !== id);
+        saveArticles();
+        render();
+      }
+    }
+
+    // 初期表示実行
+    render();
+  </script>
+</body>
+</html>
